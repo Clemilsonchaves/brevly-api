@@ -1,0 +1,31 @@
+{
+  "name": "brevly-api",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:migrate": "drizzle-kit push"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.5.0",
+    "@fastify/env": "^4.4.0",
+    "@fastify/formbody": "^8.0.2",
+    "aws-sdk": "^2.1693.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^4.29.1",
+    "pg": "^8.20.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^8.2.3",
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.20.0",
+    "drizzle-kit": "^0.31.10",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.0"
+  }
+}
