@@ -24,20 +24,32 @@ export default async function routes(app: FastifyInstance) {
       return reply.status(400).send({ error: "URL encurtada mal formatada" });
     }
 
-    // Verifica duplicidade
-    const exists = (
-      await db.select().from(links).where(eq(links.shortUrl, shortUrl))
-    )[0];
-    if (exists) {
-      return reply.status(409).send({ error: "URL encurtada já existe" });
-    }
+    try {
+      // Verifica duplicidade
+      const exists = (
+        await db.select().from(links).where(eq(links.shortUrl, shortUrl))
+      )[0];
+      if (exists) {
+        return reply.status(409).send({ error: "URL encurtada já existe" });
+      }
 
-    // Cria o link
-    const [created] = await db
-      .insert(links)
-      .values({ originalUrl, shortUrl })
-      .returning();
-    return reply.status(201).send({ link: created });
+      // Cria o link
+      const [created] = await db
+        .insert(links)
+        .values({ originalUrl, shortUrl })
+        .returning();
+      return reply.status(201).send({ link: created });
+    } catch (err) {
+      // Log detalhado do erro
+      if (err instanceof Error) {
+        console.error("Erro ao criar link:", err.message, err.stack);
+      } else {
+        console.error("Erro ao criar link:", err);
+      }
+      return reply
+        .status(500)
+        .send({ error: "Erro interno ao criar link", details: String(err) });
+    }
   });
 
   // Deletar link por shortUrl

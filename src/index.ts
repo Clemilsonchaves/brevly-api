@@ -1,21 +1,30 @@
+
+import { config } from "dotenv";
+config();
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import { config } from "dotenv";
 import routes from "./routes/links";
-
-config();
+// Log das variáveis de ambiente para depuração
+console.log('ENV PORT:', process.env.PORT);
+console.log('ENV API_URL:', process.env.API_URL);
+console.log('ENV DATABASE_URL:', process.env.DATABASE_URL);
 
 const app = Fastify();
 
 app.register(cors);
 app.register(routes);
 
+// Rota de health check
+app.get("/health", async () => {
+  return { status: "ok" };
+});
+
 app.get("/", async () => {
   return { status: "ok" };
 });
 
 app.listen(
-  { port: Number(process.env.PORT) || 3000, host: "0.0.0.0" })
+  { port: Number(process.env.PORT) || 3333, host: "0.0.0.0" })
   .then(address => {
     console.log('http: Running server🚀');
     console.log(`Server listening at ${address}`);
