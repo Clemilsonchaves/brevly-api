@@ -65,7 +65,7 @@ export default async function routes(app: FastifyInstance) {
         return reply.status(404).send({ error: "Link não encontrado" });
       }
       return reply.send({
-        message: "Link deletado com sucesso!",
+        message: "Link deletado com sucesso!!!",
         link: deleted[0],
       });
     },
