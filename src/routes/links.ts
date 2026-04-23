@@ -5,11 +5,13 @@ import { eq, desc, sql } from "drizzle-orm";
 import { generateCsv } from "../utils/csv";
 import { uploadToR2 } from "../utils/r2";
 import { generateRandomFileName } from "../utils/file";
-import { customAlphabet } from "nanoid";
 
 export default async function routes(app: FastifyInstance) {
   // Criar link
   app.post("/links", async (req: FastifyRequest, reply: FastifyReply) => {
+    // Importa nanoid dinamicamente dentro da função
+    const { customAlphabet } = await import("nanoid");
+
     type Body = { originalUrl: string; shortUrl?: string };
     const { originalUrl } = req.body as Body;
     let { shortUrl } = req.body as Body;
