@@ -1,10 +1,10 @@
 import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { db } from "../db/index.js";
-import { links } from "../db/schema.js";
+import { db } from "../db/index";
+import { links } from "../db/schema";
 import { eq, desc, sql } from "drizzle-orm";
-import { generateCsv } from "../utils/csv.js";
-import { uploadToR2 } from "../utils/r2.js";
-import { generateRandomFileName } from "../utils/file.js";
+import { generateCsv } from "../utils/csv";
+import { uploadToR2 } from "../utils/r2";
+import { generateRandomFileName } from "../utils/file";
 
 export default async function routes(app: FastifyInstance) {
   // Criar link

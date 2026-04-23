@@ -2,7 +2,7 @@ import { config } from "dotenv";
 config();
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import routes from "./routes/links.js";
+import routes from "./routes/links";
 // Log das variáveis de ambiente para depuração
 console.log("ENV PORT:", process.env.PORT);
 console.log("ENV API_URL:", process.env.API_URL);
