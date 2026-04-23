@@ -5,18 +5,26 @@ import { eq, desc, sql } from "drizzle-orm";
 import { generateCsv } from "../utils/csv";
 import { uploadToR2 } from "../utils/r2";
 import { generateRandomFileName } from "../utils/file";
+import { customAlphabet } from "nanoid";
 
 export default async function routes(app: FastifyInstance) {
   // Criar link
   app.post("/links", async (req: FastifyRequest, reply: FastifyReply) => {
-    type Body = { originalUrl: string; shortUrl: string };
-    const { originalUrl, shortUrl } = req.body as Body;
+    type Body = { originalUrl: string; shortUrl?: string };
+    const { originalUrl } = req.body as Body;
+    let { shortUrl } = req.body as Body;
 
     // Validação básica de URL original
     try {
       new URL(originalUrl);
     } catch {
       return reply.status(400).send({ error: "URL original inválida" });
+    }
+
+    // Gera shortUrl se não enviado
+    if (!shortUrl) {
+      const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 6);
+      shortUrl = nanoid();
     }
 
     // Validação da shortUrl (apenas letras, números, hífen, underline, 3-32 caracteres)
