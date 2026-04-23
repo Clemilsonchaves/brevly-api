@@ -39,5 +39,6 @@ const pg_1 = require("pg");
 const schema = __importStar(require("./schema"));
 const pool = new pg_1.Pool({
     connectionString: process.env.DATABASE_URL,
+    max: 1, // força usar uma única conexão
 });
 exports.db = (0, node_postgres_1.drizzle)(pool, { schema });

@@ -1,7 +1,40 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = routes;
-const db_1 = require("../db");
+const index_1 = require("../db/index");
 const schema_1 = require("../db/schema");
 const drizzle_orm_1 = require("drizzle-orm");
 const csv_1 = require("../utils/csv");
@@ -10,7 +43,10 @@ const file_1 = require("../utils/file");
 async function routes(app) {
     // Criar link
     app.post("/links", async (req, reply) => {
-        const { originalUrl, shortUrl } = req.body;
+        // Importa nanoid dinamicamente dentro da função
+        const { customAlphabet } = await Promise.resolve().then(() => __importStar(require("nanoid")));
+        const { originalUrl } = req.body;
+        let { shortUrl } = req.body;
         // Validação básica de URL original
         try {
             new URL(originalUrl);
@@ -18,26 +54,43 @@ async function routes(app) {
         catch {
             return reply.status(400).send({ error: "URL original inválida" });
         }
+        // Gera shortUrl se não enviado
+        if (!shortUrl) {
+            const nanoid = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 6);
+            shortUrl = nanoid();
+        }
         // Validação da shortUrl (apenas letras, números, hífen, underline, 3-32 caracteres)
         if (!/^[a-zA-Z0-9_-]{3,32}$/.test(shortUrl)) {
             return reply.status(400).send({ error: "URL encurtada mal formatada" });
         }
-        // Verifica duplicidade
-        const exists = (await db_1.db.select().from(schema_1.links).where((0, drizzle_orm_1.eq)(schema_1.links.shortUrl, shortUrl)))[0];
-        if (exists) {
-            return reply.status(409).send({ error: "URL encurtada já existe" });
+        try {
+            // Verifica duplicidade
+            const exists = (await index_1.db.select().from(schema_1.links).where((0, drizzle_orm_1.eq)(schema_1.links.shortUrl, shortUrl)))[0];
+            if (exists) {
+                return reply.status(409).send({ error: "URL encurtada já existe" });
+            }
+            // Cria o link
+            const [created] = await index_1.db
+                .insert(schema_1.links)
+                .values({ originalUrl, shortUrl })
+                .returning();
+            return reply.status(201).send({ link: created });
         }
-        // Cria o link
-        const [created] = await db_1.db
-            .insert(schema_1.links)
-            .values({ originalUrl, shortUrl })
-            .returning();
-        return reply.status(201).send({ link: created });
+        catch (err) {
+            // Log detalhado do erro
+            console.error("Erro ao criar link:", err);
+            if (err instanceof Error) {
+                console.error("Stack:", err.stack);
+            }
+            return reply
+                .status(500)
+                .send({ error: "Erro interno ao criar link", details: String(err) });
+        }
     });
     // Deletar link por shortUrl
     app.delete("/links/:shortUrl", async (req, reply) => {
         const { shortUrl } = req.params;
-        const deleted = await db_1.db
+        const deleted = await index_1.db
             .delete(schema_1.links)
             .where((0, drizzle_orm_1.eq)(schema_1.links.shortUrl, shortUrl))
             .returning();
@@ -45,14 +98,14 @@ async function routes(app) {
             return reply.status(404).send({ error: "Link não encontrado" });
         }
         return reply.send({
-            message: "Link deletado com sucesso",
+            message: "Link deletado com sucesso!!!",
             link: deleted[0],
         });
     });
     // Obter URL original por shortUrl
     app.get("/links/:shortUrl", async (req, reply) => {
         const { shortUrl } = req.params;
-        const link = (await db_1.db.select().from(schema_1.links).where((0, drizzle_orm_1.eq)(schema_1.links.shortUrl, shortUrl)))[0];
+        const link = (await index_1.db.select().from(schema_1.links).where((0, drizzle_orm_1.eq)(schema_1.links.shortUrl, shortUrl)))[0];
         if (!link) {
             return reply.status(404).send({ error: "Link não encontrado" });
         }
@@ -64,10 +117,10 @@ async function routes(app) {
         const pageNum = Math.max(1, parseInt(page));
         const limitNum = Math.min(100, Math.max(1, parseInt(limit)));
         const offset = (pageNum - 1) * limitNum;
-        const [{ count }] = await db_1.db
+        const [{ count }] = await index_1.db
             .select({ count: (0, drizzle_orm_1.sql) `count(*)::int` })
             .from(schema_1.links);
-        const linksList = await db_1.db
+        const linksList = await index_1.db
             .select()
             .from(schema_1.links)
             .orderBy((0, drizzle_orm_1.desc)(schema_1.links.createdAt))
@@ -84,7 +137,7 @@ async function routes(app) {
     app.post("/links/:shortUrl/access", async (req, reply) => {
         const { shortUrl } = req.params;
         // Incrementa accessCount de forma atômica
-        const updated = await db_1.db
+        const updated = await index_1.db
             .update(schema_1.links)
             .set({ accessCount: (0, drizzle_orm_1.sql) `${schema_1.links.accessCount} + 1` })
             .where((0, drizzle_orm_1.eq)(schema_1.links.shortUrl, shortUrl))
@@ -96,7 +149,7 @@ async function routes(app) {
     });
     // Exportar CSV para CDN
     app.get("/links/export/csv", async (req, reply) => {
-        const linksList = await db_1.db.query.links.findMany({});
+        const linksList = await index_1.db.query.links.findMany({});
         const csv = (0, csv_1.generateCsv)(linksList.map((l) => ({
             originalUrl: l.originalUrl,
             shortUrl: l.shortUrl,

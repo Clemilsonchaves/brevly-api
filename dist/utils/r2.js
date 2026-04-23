@@ -6,8 +6,8 @@ const s3 = new aws_sdk_1.S3({
     endpoint: process.env.CLOUDFLARE_PUBLIC_URL,
     accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY_ID,
     secretAccessKey: process.env.CLOUDFLARE_SECRET_ACCESS_KEY,
-    region: 'auto',
-    signatureVersion: 'v4',
+    region: "auto",
+    signatureVersion: "v4",
 });
 async function uploadToR2(fileName, buffer) {
     const bucket = process.env.CLOUDFLARE_BUCKET;
@@ -16,7 +16,7 @@ async function uploadToR2(fileName, buffer) {
         Bucket: bucket,
         Key: fileName,
         Body: buffer,
-        ContentType: 'text/csv',
+        ContentType: "text/csv",
     })
         .promise();
     return `${process.env.CLOUDFLARE_PUBLIC_URL}/${fileName}`;
