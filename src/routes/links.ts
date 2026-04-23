@@ -51,10 +51,9 @@ export default async function routes(app: FastifyInstance) {
       return reply.status(201).send({ link: created });
     } catch (err) {
       // Log detalhado do erro
+      console.error("Erro ao criar link:", err);
       if (err instanceof Error) {
-        console.error("Erro ao criar link:", err.message, err.stack);
-      } else {
-        console.error("Erro ao criar link:", err);
+        console.error("Stack:", err.stack);
       }
       return reply
         .status(500)
