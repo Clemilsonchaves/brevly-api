@@ -48,7 +48,11 @@ export default async function routes(app: FastifyInstance) {
         .insert(links)
         .values({ originalUrl, shortUrl })
         .returning();
-      return reply.status(201).send({ link: created });
+      // Mapeia shortUrl para shortCode para compatibilidade com o frontend
+      return reply.status(201).send({
+        ...created,
+        shortCode: created.shortUrl,
+      });
     } catch (err) {
       // Log detalhado do erro
       console.error("Erro ao criar link:", err);
