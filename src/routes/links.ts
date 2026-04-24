@@ -3,7 +3,7 @@ import { db } from "../db/index";
 import { generateCsv } from "../utils/csv";
 
 // Função para registrar as rotas relacionadas a links
-export async function linksRoutes(app: FastifyInstance) {
+export default async function routes(app: FastifyInstance) {
   // Exportar CSV diretamente para download
   app.get("/links/export", async (req: FastifyRequest, reply: FastifyReply) => {
     const linksList = await db.query.links.findMany({});
