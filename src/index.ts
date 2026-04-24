@@ -2,7 +2,7 @@ import { config } from "dotenv";
 config();
 import Fastify from "fastify";
 import cors from "@fastify/cors";
-import routes from "./routes/links";
+import { linksRoutes } from "./routes/links";
 // Log das variáveis de ambiente para depuração
 console.log("ENV PORT:", process.env.PORT);
 console.log("ENV API_URL:", process.env.API_URL);
@@ -10,8 +10,9 @@ console.log("ENV DATABASE_URL:", process.env.DATABASE_URL);
 
 const app = Fastify();
 
+
 app.register(cors);
-app.register(routes);
+await linksRoutes(app);
 
 // Rota de health check
 app.get("/health", async () => {
