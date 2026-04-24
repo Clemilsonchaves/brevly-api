@@ -119,11 +119,17 @@ export default async function routes(app: FastifyInstance) {
       .limit(limitNum)
       .offset(offset);
 
+    // Mapeia shortUrl para shortCode para compatibilidade com o frontend
+    const mappedLinks = linksList.map((link) => ({
+      ...link,
+      shortCode: link.shortUrl,
+    }));
+
     return reply.send({
       total: count ?? 0,
       page: pageNum,
       limit: limitNum,
-      data: linksList,
+      data: mappedLinks,
     });
   });
 
